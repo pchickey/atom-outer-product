@@ -14,9 +14,7 @@ main = do
     outerprod
   _ <- compile "outerprod_bench" 
     defaults { cFuncName = "outerprod"
-             , cCode = benchTestPrePostCode $ "    " ++
-                "state.outerprod_bench.row = 0UL;" ++ 
-                "state.outerprod_bench.col = 0UL; // reset state"
+             , cCode = benchTestPrePostCode 
              } 
     outerprod
   putStrLn "Naive Outer Product Implementation"
@@ -29,7 +27,7 @@ main = do
     betterop
   _ <- compile "betterop_bench" 
     defaults { cFuncName = "outerprod"
-             , cCode = benchTestPrePostCode "// no state to reset"
+             , cCode = benchTestPrePostCode
              } 
     betterop
   putStrLn "Improved Outer Product Implementation"
@@ -78,8 +76,8 @@ funcTestPrePostCode _ _ _ =
     ]
   )
 
-benchTestPrePostCode :: String -> [Name] -> [Name] -> [(Name, Type)] -> (String, String)
-benchTestPrePostCode stateResetCCode _ _ _ =
+benchTestPrePostCode :: [Name] -> [Name] -> [(Name, Type)] -> (String, String)
+benchTestPrePostCode _ _ _ =
   ( "#define NUM_RUNS 100000000\n" ++
     "#include <time.h>\n" ++
     preCode
@@ -94,7 +92,6 @@ benchTestPrePostCode stateResetCCode _ _ _ =
     , "    while(running) {"
     , "      outerprod();"
     , "    }"
-    , stateResetCCode
     , "    running = 1;"
     , "  }"
     , "  runtime = clock();"
@@ -109,13 +106,19 @@ outerprod :: Atom ()
 outerprod = do
   -- externs
   let input = array' "in" Float
-  let output = array' "out" Float
-  let running = bool' "running"
+      output = array' "out" Float
+      running = bool' "running"
   
   -- state vars
   row <- word32 "row" 0
   col <- word32 "col" 0
-
+  
+  atom "do_mul" $ do
+    let out_idx = ((value row) * 4) + (value col)
+        mulresult ::  E Float 
+        mulresult = (input !. value row) * (input !. value col)
+    (output ! out_idx) <== mulresult
+  
   atom "adv_col" $ do
     cond $ value col <. 4
     col <== value col + 1
@@ -125,22 +128,22 @@ outerprod = do
     col <== 0
     row <== value row + 1
 
-  atom "do_mul" $ do
-    let out_idx = ((value row) * 4) + (value col)
-        mulresult ::  E Float 
-        mulresult = (input !. value row) * (input !. value col)
-    (output ! out_idx) <== mulresult
-
   atom "check_finish" $ do
     cond $ value row ==. 4
     running <== false
+    -- reset state
+    row <== 0
+    col <== 0
   
-out_idx :: (IntegralE a) => E a -> E a -> E a
-out_idx r c = 4*r+c 
 
+ 
 docell :: (Assign a, NumE a, IntegralE c) => A a -> A a -> (E c, E c) -> Atom ()
 docell input output (row,col) = do
       output ! (out_idx row col) <== (input !. row) * (input !. col)
+  where
+  out_idx :: (IntegralE a) => E a -> E a -> E a
+  out_idx r c = 4*r+c   
+
 
 betterop :: Atom ()
 betterop = do
@@ -151,7 +154,8 @@ betterop = do
       running = bool' "running"
   
   let elems :: [(E Int32,E Int32)]
-      elems = [ (r,c) | r <- [0,1,2,3], c <- [0,1,2,3] ]
+      elems =  [(r,c) | r <- [0,1,2,3], c <- [0,1,2,3] ]
+
   atom "do_mul" $ do
     cond $ value running ==. true 
     mapM (docell input output) elems
