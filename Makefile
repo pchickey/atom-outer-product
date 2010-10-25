@@ -10,8 +10,8 @@ GENHFILES=betterop.h betterop_bench.h outerprod.h outerprod_bench.h
 
 all: $(CEXECUTABLES)
 
-$(GENCFILES) $(GENHFILES): atom_op.hs
-	runhaskell atom_op.hs
+$(GENCFILES) $(GENHFILES): atom_outer_product.hs
+	runhaskell atom_outer_product.hs
 
 betterop: betterop.c betterop.h
 	$(CC) $(CFLAGS) $< -o $@
