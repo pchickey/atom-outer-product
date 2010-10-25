@@ -1,0 +1,31 @@
+Atom Outer Product
+Pat Hickey
+24 Oct 2010
+
+I wrote this code[1] to play with Tom Hawkins's[2] Atom[3,4], an embedded Haskell DSL. This is a
+simple example project which generates C code to calculate the outer product of a vector with 
+itself; that is, a^T * a, which multiplies each element of a by each element of a. Presently the
+code is implemented for a length 4 input.
+
+I have implemented this simple algorithm in two ways: 
+1. 'outerprod', which iterates across the input and performs the calculation using atom expressions
+2. 'betterop', which iterates across the input at using Haskell expressions (that is, at compile 
+    time), and performs the calculation using atom expressions.
+    
+I'm sure there are many obvious improvements to be made, not the least of which is to only calculate
+one triangle of the symmetric output matrix. Hopefully this code will be a useful example on how
+to use Atom. 
+    
+I've provided two C wrappers for the compiled Atom code:
+1.  funcTestPrePostCode, which performs an outer product of a vector given as an argument to the 
+    compiled C program. I used this to verify the code works.
+2.  benchTestPrePostCode, which performs a rudimentary execution time test. It demonstrates that
+    betterop is several times faster than outerprod, as you would expect. 
+
+LICENSE
+You may do whatever you like with this code.
+
+[1] http://github.com/pchickey/atom-outer-product
+[2] http://tomahawkins.org
+[3] http://github.com/tomahawkins/atom
+[4] http://hackage.haskell.org/package/atom-1.0.7
