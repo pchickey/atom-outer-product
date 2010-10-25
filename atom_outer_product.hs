@@ -63,8 +63,15 @@ funcTestPrePostCode _ _ _ =
     , "    while(running) {"
     , "      outerprod();"
     , "    }"
-    , "    printf(\"outer product result:\\n\");"
-    , "    printf(\"[ %7.4f %7.4f %7.4f %7.4f \\n; %7.4f %7.4f %7.4f %7.4f \\n; %7.4f %7.4f %7.4f %7.4f \\n; %7.4f %7.4f %7.4f %7.4f \\n] \\n \", out[0], out[1], out[2], out[3], out[4], out[5], out[6], out[7], out[8], out[9], out[10], out[11], out[12], out[13], out[14], out[15]);"
+    , "    printf(\"outer product result:\\n\");       "
+    , "    printf(\"[ %7.4f %7.4f %7.4f %7.4f \\n\"   "
+    , "           \"  %7.4f %7.4f %7.4f %7.4f \\n\"   " 
+    , "           \"  %7.4f %7.4f %7.4f %7.4f \\n\"   " 
+    , "           \"  %7.4f %7.4f %7.4f %7.4f ] \\n\"  "
+    , "            , out[0], out[1], out[2], out[3]    "
+    , "            , out[4], out[5], out[6], out[7]    "
+    , "            , out[8], out[9], out[10], out[11]  "
+    , "            , out[12], out[13], out[14], out[15]); "
     , "  }"
     , "  return 0;"
     , "}"
@@ -73,13 +80,13 @@ funcTestPrePostCode _ _ _ =
 
 benchTestPrePostCode :: String -> [Name] -> [Name] -> [(Name, Type)] -> (String, String)
 benchTestPrePostCode stateResetCCode _ _ _ =
-  ( "#define NUM_RUNS 1000000\n" ++
+  ( "#define NUM_RUNS 100000000\n" ++
     "#include <time.h>\n" ++
     preCode
   , unlines
     [ "int main(int argc, char* argv[]) {"
     , " clock_t runtime;"
-    , " long i;"
+    , " long long i; // NUM_RUNS may be very large."
     , " float in[4];"
     , " float out[16];"
     , " in[0] = 1.0; in[1] = 2.0; in[3] = 3.0; in[4] = 4.0;"
