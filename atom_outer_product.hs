@@ -136,13 +136,12 @@ outerprod = do
     col <== 0
   
 
- 
-docell :: (Assign a, NumE a, IntegralE c) => A a -> A a -> (E c, E c) -> Atom ()
+docell :: (Assign a, NumE a, IntegralE c) => A a -> A a -> (c,c) -> Atom ()
 docell input output (row,col) = do
-      output ! (out_idx row col) <== (input !. row) * (input !. col)
+      output ! (out_idx row col) <== (input !. Const row) * (input !. Const col)
   where
-  out_idx :: (IntegralE a) => E a -> E a -> E a
-  out_idx r c = 4*r+c   
+  out_idx :: (IntegralE a) => a -> a -> E a
+  out_idx r c = Const $ 4*r+c   
 
 
 betterop :: Atom ()
@@ -153,7 +152,7 @@ betterop = do
       output = array' "out" Float
       running = bool' "running"
   
-  let elems :: [(E Int32,E Int32)]
+  let elems :: [(Int32,Int32)]
       elems =  [(r,c) | r <- [0,1,2,3], c <- [0,1,2,3] ]
 
   atom "do_mul" $ do
