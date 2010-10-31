@@ -2,11 +2,11 @@
 CC=gcc
 LD=gcc
 
-CFLAGS=-O0 -Wall -g3
+CFLAGS=-O3 -Wall -g3
 
-CEXECUTABLES=betterop betterop_bench outerprod outerprod_bench
-GENCFILES=betterop.c betterop_bench.c outerprod.c outerprod_bench.c
-GENHFILES=betterop.h betterop_bench.h outerprod.h outerprod_bench.h
+CEXECUTABLES=betterop betterop_bench outerprod outerprod_bench op_triangle op_triangle_bench
+GENCFILES=betterop.c betterop_bench.c outerprod.c outerprod_bench.c op_triangle.c
+GENHFILES=betterop.h betterop_bench.h outerprod.h outerprod_bench.h op_triangle.h
 
 all: $(CEXECUTABLES)
 
@@ -23,6 +23,9 @@ outerprod: outerprod.c outerprod.h
 	$(CC) $(CFLAGS) $< -o $@
 
 outerprod_bench: outerprod_bench.c outerprod_bench.h
+	$(CC) $(CFLAGS) $< -o $@
+
+op_triangle: op_triangle.c op_triangle.h
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
