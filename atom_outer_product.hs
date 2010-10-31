@@ -32,6 +32,20 @@ main = do
     betterop
   putStrLn "Improved Outer Product Implementation"
   putStrLn $ reportSchedule schedule2
+ 
+  (schedule2, _, _, _, _) <- compile "op_triangle" 
+    defaults { cFuncName = "outerprod"
+             , cCode = funcTestPrePostCode
+             } 
+    op_triangle
+  _ <- compile "op_triangle_bench" 
+    defaults { cFuncName = "outerprod"
+             , cCode = benchTestPrePostCode
+             } 
+    op_triangle
+  putStrLn "Triangular Outer Product Implementation"
+  putStrLn $ reportSchedule schedule2
+
 
 preCode :: String
 preCode = 
@@ -78,7 +92,7 @@ funcTestPrePostCode _ _ _ =
 
 benchTestPrePostCode :: [Name] -> [Name] -> [(Name, Type)] -> (String, String)
 benchTestPrePostCode _ _ _ =
-  ( "#define NUM_RUNS 100000000\n" ++
+  ( "#define NUM_RUNS 10000000\n" ++ -- 100000000 for faster computers
     "#include <time.h>\n" ++
     preCode
   , unlines
@@ -160,4 +174,37 @@ betterop = do
     mapM (docell input output) elems
     running <== false
 
+ 
+out_idx :: (IntegralE a) => a -> a -> E a
+out_idx r c = Const $ 4*r+c   
+
+docells :: (Assign a, NumE a, IntegralE c) => A a -> A a -> (c,c) -> Atom ()
+docells input output (row,col) 
+  | row == col = do 
+      let mulresult = (input !. Const row) * (input !. Const col)
+      output ! (out_idx row col) <== mulresult 
+  | row /= col = do    
+      -- let varname = "mulresult" ++ show(row) ++ show(col)
+      -- mulresult <- var varname 3 
+      -- using let mulresult gives a 10% speed improvement over docell on my netbook, gcc 4.4.1, -O0
+      -- no difference for -03. I guess gcc is smart 
+      let mulresult = (input !. Const row) * (input !. Const col)
+      output ! (out_idx row col) <== {- value -} mulresult 
+      output ! (out_idx col row) <== {- value -} mulresult 
+
+op_triangle :: Atom ()
+op_triangle = do
+  let input :: A Float 
+      input = array' "in" Float
+      output :: A Float 
+      output = array' "out" Float
+      running = bool' "running"
+
+  let tri_elems :: Int32 -> [(Int32,Int32)]
+      tri_elems n =  [(r,c) | r <- [0..n], c <- [0..n], r >= c ]
+
+  atom "do_mul" $ do
+    cond $ value running ==. true 
+    mapM (docells input output) (tri_elems 3)
+    running <== false
 
