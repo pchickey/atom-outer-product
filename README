@@ -12,7 +12,7 @@ I've provided two C wrappers for the compiled Atom code:
 1.  funcTestPrePostCode, which performs an outer product of a vector given as an argument to the compiled C program. I used this to verify the code works.
 2.  benchTestPrePostCode, which performs a rudimentary execution time test. It demonstrates that betterop is several times faster than outerprod, as you would expect. 
 
-I've also included a third implementation of the algorithm, 'op_triangle', which was an attempt to use an imperative style intermediate variable to store the result of the input multiplication, and assign that value to multiple outputs. This code turns out to be impossible to write with the Atom language, because all assignments (<==) are carried out at the end of rule execution. Therefore, their value cannot be used to cause a side effect during rule execution.
+I've also included a third implementation of the algorithm, 'op_triangle', which was an attempt to use an imperative style intermediate variable to store the result of the input multiplication, and assign that value to multiple outputs. This code turns out to be impossible to write with the Atom language, because assignments (<==) are carried out at the end of rule execution, so they cannot cause a side effect during rule execution.
 
 LICENSE
 You may do whatever you like with this code.
